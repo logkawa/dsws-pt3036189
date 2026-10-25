@@ -1,6 +1,11 @@
 import os
 import click
+from dotenv import load_dotenv
 from flask_migrate import Migrate
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
+
 from app import create_app, db
 from app.models import User, Role
 
@@ -18,8 +23,10 @@ def make_shell_context():
 def test(test_names):
     """Run the unit tests."""
     import unittest
+
     if test_names:
         tests = unittest.TestLoader().loadTestsFromNames(test_names)
     else:
         tests = unittest.TestLoader().discover('tests')
+
     unittest.TextTestRunner(verbosity=2).run(tests)
