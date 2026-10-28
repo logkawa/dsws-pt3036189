@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}Avaliação contínua: Aula 080{% endblock %}
 
 {% block page_content %}
+
 <div class="page-header">
     <h1>
         Olá,
@@ -22,14 +22,13 @@
     {% endif %}
 
     {% if email_status %}
-        <p>{{ email_status }}</p>
-    {% else %}
-        <p>
-            E-mail enviado para o <strong>Administrador do sistema</strong>,
-            notificando o cadastro de um novo usuário.
-        </p>
+        <div class="alert alert-info">
+            {{ email_status }}
+        </div>
     {% endif %}
 </div>
+
+<h2>Cadastrar usuário</h2>
 
 {{ wtf.quick_form(form) }}
 
@@ -38,23 +37,119 @@
 <h2>Relação de usuários cadastrados</h2>
 
 <table class="table table-hover">
+    <colgroup>
+        <col style="width: 40%;">
+        <col style="width: 20%;">
+        <col style="width: 40%;">
+    </colgroup>
+
     <thead>
         <tr>
             <th>Nome do usuário</th>
             <th>Função</th>
+            <th></th>
         </tr>
     </thead>
+
     <tbody>
         {% for user in users %}
+
         <tr>
-            <td>{{ user.username }}</td>
-            <td>{{ user.role.name }}</td>
+            <!-- Coluna do nome e edição -->
+            <td>
+                {% if editing_id == user.id %}
+
+                    <form method="POST"
+                          action="{{ url_for('.edit_user', id=user.id) }}"
+                          style="display: flex; align-items: center; gap: 6px;">
+
+                        {{ edit_forms[user.id].hidden_tag() }}
+
+                        <input type="hidden"
+                           name="email"
+                           value="{{ user.email }}">
+
+                        <input type="hidden"
+                               name="role_id"
+                               value="{{ user.role_id }}">
+
+                        {{ edit_forms[user.id].username(
+                            class="form-control",
+                            style="width: 215px;",
+                            autocomplete="off"
+                        ) }}
+
+                        <button type="submit"
+                                formaction="{{ url_for('.cancel_edit', id=user.id) }}"
+                                formmethod="POST"
+                                formnovalidate
+                                class="btn btn-default btn-sm">
+                            Cancelar
+                        </button>
+
+                        {{ edit_forms[user.id].submit(
+                            value="Salvar",
+                            class="btn btn-primary btn-sm"
+                        ) }}
+
+                    </form>
+
+                {% else %}
+
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>{{ user.username }}</span>
+
+                        <form method="POST"
+                              action="{{ url_for('.edit_mode', id=user.id) }}"
+                              style="margin: 0;">
+
+                            {{ delete_form.hidden_tag() }}
+
+                            <button type="submit"
+                                    class="btn btn-default btn-sm">
+                                Editar
+                            </button>
+
+                        </form>
+                    </div>
+
+                {% endif %}
+            </td>
+
+            <!-- Coluna da função -->
+            <td>
+                {{ user.role.name }}
+            </td>
+
+            <!-- Coluna de exclusão -->
+            <td>
+                <form id="delete-{{ user.id }}"
+                      method="POST"
+                      action="{{ url_for('.delete_user', id=user.id) }}"
+                      style="display: inline;"
+                      onsubmit="return confirm('Tem certeza que deseja excluir este usuário?');">
+
+                    {{ delete_form.hidden_tag() }}
+
+                    <button type="submit"
+                            class="btn btn-danger btn-sm">
+                        Excluir
+                    </button>
+
+                </form>
+            </td>
         </tr>
+
         {% else %}
+
         <tr>
-            <td colspan="2">Nenhum usuário cadastrado.</td>
+            <td colspan="3">
+                Nenhum usuário cadastrado.
+            </td>
         </tr>
+
         {% endfor %}
     </tbody>
 </table>
+
 {% endblock %}
